@@ -11,7 +11,7 @@
 int main(int argc, char const *argv[]){
     if(argc < 2) {
         perror("Usage: tail <files[]>");
-        return -1;
+        return 1;
     }
 
     for(int i = 1; i < argc; i++){

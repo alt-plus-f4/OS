@@ -8,7 +8,10 @@
 #include "vector/vector.h"
 
 int main(int argc, char const *argv[]){
-    if(argc < 2) perror("Usage: watch <command> <optional: arguments>");
+    if(argc < 2){ 
+        perror("Usage: watch <command> <optional: arguments>");
+        return 1;
+    }
 
     while(1){
         int pid = fork();
