@@ -33,9 +33,25 @@ int main(int argc, char const *argv[]){
             return 1;
         }
 
+        printf("\n==> %s <==\n", argv[i]);
+
         //* Actual code:
 
+        lseek(fp, 0, SEEK_END);
+        lseek(fp, -1, SEEK_CUR);
+
+        char buffer;
+        int numberOfLines = 0;
+
+        // if there is an error with read, if 10 lines have been
+        // read or if the beginning of the file has been reached 
         
+        while(read(fp, &buffer, 1) > 0 && numberOfLines < 10 && lseek(fp, -2, SEEK_CUR) != -1) 
+            if(buffer == '\n') numberOfLines++;
+
+        while(read(fp, &buffer, 1) > 0)
+            write(STDOUT_FILENO, &buffer, 1);
+    
        if(close(fp) != 0) perror("Unable to close file. ERROR:");
     }
 
