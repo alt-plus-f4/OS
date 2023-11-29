@@ -8,15 +8,13 @@
 
 #define MAX_LINE 80 // 80 chars per command should be enough.
 
-int main(){
+int main() {
     char input[MAX_LINE];
     char *args[MAX_LINE];
     int should_run = 1;
 
-    while(should_run){
-        if(!getuid()) printf("root$ ");
-        else printf("user$ ");
-
+    while (should_run) {
+        printf("%s$ ", getuid() ? "user" : "root");
         fflush(stdout);
         
         fgets(input, MAX_LINE, stdin);
@@ -25,29 +23,26 @@ int main(){
         char *token = strtok(input, " ");
         int i = 0;
 
-        while(token != NULL){
-            args[i] = token;
-            i++;
+        while (token != NULL) {
+            args[i++] = token;
             token = strtok(NULL, " ");
         }
 
         args[i] = NULL;
-
         pid_t pid = fork();
-        if(pid < 0){
+
+        if (pid < 0) {
             fprintf(stderr, "fork: %s\n", strerror(errno));
             continue;
         }
 
-        if(pid == 0){
-            if(execvp(args[0], args) < 0)
-                fprintf(stderr, "%s: %s\n", args[0], strerror(errno));
+        if (pid == 0) {
+            if (execvp(args[0], args) < 0) fprintf(stderr, "%s: %s\n", args[0], strerror(errno));
             exit(0);
-        }
-
+        } 
         else wait(NULL);
-
+        
     }
-    
+
     return 0;
 }

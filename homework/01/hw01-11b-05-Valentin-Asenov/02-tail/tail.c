@@ -6,8 +6,6 @@
 #include <fcntl.h>
 #include <unistd.h> 
 
-#define MAX_CHARS 128
-
 int main(int argc, char const *argv[]){
     if(argc < 2) {
         perror("Usage: tail <files[]>");
@@ -17,30 +15,26 @@ int main(int argc, char const *argv[]){
     for(int i = 1; i < argc; i++){
         struct stat st;
 
-        if(stat(argv[i], &st) != 0) {
-            perror("Unable to open file");
-            continue;
+        //* Checks
+
+        if(stat(argv[i], &st) == -1) {
+            perror("Unable to stat file");
+            return 1;
         }
 
         if(S_ISDIR(st.st_mode)) {
             fprintf(stderr, "./tail: perror reading '%s': Is a directory\n", argv[i]);
-            continue;
+            return 1;
         }
 
         int fp = open(argv[i], O_RDONLY);
         if(fp == -1) {
             perror("Unable to open file");
-            continue;
+            return 1;
         }
-        
-        char buffer[MAX_CHARS]; 
-        ssize_t bytesRead = read(fp, buffer, MAX_CHARS);
 
-        if(bytesRead > 0) {
-            if(argc > 2) printf("==> %s <==\n", argv[i]);
-            write(STDOUT_FILENO, buffer, bytesRead);
-            puts("\n");
-        }
+        //* Actual code:
+
         
        if(close(fp) != 0) perror("Unable to close file. ERROR:");
     }
