@@ -1,11 +1,13 @@
 #include "ui.h"
+#include "config.h"
 
 int main() {
 	init();
-	print_gold(100);
-	print_soldiers(50);
-	print_zombies(5, 13);
-	print_health(100);
+	
+	print_gold(STARTING_GOLD);
+	print_soldiers(STARTING_SOLD);
+	print_zombies(ZOMBIE_START_POS, STARTING_ZOMB);
+	print_health(HEALTH);
 
 	while(1) {
 		int ch = get_input();
@@ -13,6 +15,17 @@ int main() {
 			case 'q':
 				game_end(0);
 				break;
+			case 'm':
+				spawn_miner();
+				break;
+			case 's':
+				spawn_soldier(1);
+				break;
+			case 'x':
+				spawn_soldier(10);
+				break;
 		}
 	}
+
+	return 0;
 }
