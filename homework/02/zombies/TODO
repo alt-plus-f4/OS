@@ -1,19 +1,19 @@
 INPUT:
-    - m: Miner -       cost 100$ - 10$/s - sleep(1s)
-    - s: Soldier -     cost 10$  - war()
-    - x: 10 Soldiers - cost 100$ - war()
+    X - m: Miner -       cost 100$ - 10$/s - sleep(1s)
+    X - s: Soldier -     cost 10$  - war()
+    X - x: 10 Soldiers - cost 100$ - war()
 
 ZOMBIES:
-    - Separate thread
-    - Move: place--; if 0 attack();
-    - Attack: 
-        - if sol > zom: pos = 5, print_succ(fail...); 
-        - else health-=zom-sol, print_fail(succ...);
-        - zom *= 2 
+    X - Separate thread
+    X - Move: place--; if 0 attack();
+    X - Attack: 
+    X    - if sol > zom: pos = 5, print_succ(fail...); 
+    x    - else health-=zom-sol, print_fail(succ...);
+    X    - zom *= 2 
 
 GAMELOOP:
-    - Gold change:    print_gold();
-    - Soldier change: print_soldiers();
-    - Health change:  print_health();
-    - Zombie change:  print_zombies();
-    - Health <= 0:    game_end();
+    X - Gold change:    print_gold();
+    X - Soldier change: print_soldiers();
+    X - Health change:  print_health();
+    X - Zombie change:  print_zombies();
+    X - Health <= 0:    game_end();
