@@ -7,5 +7,6 @@
 #include <stdlib.h>
 
 void parse(char *line, char **argv);
+void parse_commands(char *line, char **commands);
 void exec_cmd(char **argv);
 void execute_commands(char **commands);

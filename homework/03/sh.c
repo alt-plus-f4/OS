@@ -5,8 +5,8 @@
 #include <sys/types.h>
 #include <sys/wait.h> 
 #include <stdlib.h>
-#include "execute_commands.h"
 
+#include "execute_commands.h"
 #define MAX_LINE 80
 
 int main() {
@@ -20,16 +20,11 @@ int main() {
         fgets(line, MAX_LINE, stdin);
         line[strcspn(line, "\n")] = '\0';
 
-        char *token = strtok(line, "|");
-        int i = 0;
-        while (token != NULL) {
-            commands[i++] = token;
-            token = strtok(NULL, "|");
-        }
-        commands[i] = NULL;
-
+        parse_commands(line, commands);
         execute_commands(commands);
     }
 
     return 0;
 }
+
+
