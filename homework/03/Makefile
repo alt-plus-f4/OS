@@ -8,6 +8,5 @@ all: *.c *.h
 	gcc -Wall -Wextra -pedantic -std=c11 *.c 
 
 clean:
-	rm *.o
 	rm sh
 	rm ls-grep
