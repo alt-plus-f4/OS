@@ -8,4 +8,4 @@
 
 void parse(char *line, char **argv);
 void exec_cmd(char **argv);
-void pipe_cmd(char** parsed, char** parsedpipe);
+void execute_commands(char **commands);

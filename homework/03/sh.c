@@ -11,48 +11,24 @@
 
 int main() {
     char line[MAX_LINE];
-    char *argv[MAX_LINE];
-    char *argv2[MAX_LINE];
+    char *commands[MAX_LINE];
 
     while (1) {
         printf("%s$ ", getuid() ? "user" : "root");
         fflush(stdout);
 
         fgets(line, MAX_LINE, stdin);
-        line[strcspn(line, "\n")] = 0;
+        line[strcspn(line, "\n")] = '\0';
 
-        parse(line, argv);
-
-        if (strcmp(argv[0], "exit") == 0)
-            exit(0);
-
+        char *token = strtok(line, "|");
         int i = 0;
-        while (argv[i] != NULL) {
-            if (argv[i] != NULL && strcmp(argv[i], "|") == 0) {
-                argv[i] = NULL;
-                int j = 0;
-                while (argv[i + j + 1] != NULL) {
-                    argv2[j] = argv[i + j + 1];
-                    j++;
-                }
-                argv2[j] = NULL;
-                pipe_cmd(argv, argv2);
-                break;
-            }
-            i++;
+        while (token != NULL) {
+            commands[i++] = token;
+            token = strtok(NULL, "|");
         }
-        if (argv[i] == NULL) {
-            pid_t pid = fork();
-            if (pid < 0) {
-                perror("fork error");
-                exit(1);
-            } else if (pid == 0) {
-                exec_cmd(argv);
-            } else {
-                wait(NULL);
-                memset(line, 0, sizeof(line));
-            }
-        }
+        commands[i] = NULL;
+
+        execute_commands(commands);
     }
 
     return 0;

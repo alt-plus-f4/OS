@@ -6,69 +6,43 @@ void parse(char *line, char **argv) {
         *argv++ = token;
         token = strtok(NULL, " \t\n");
     }
-    *argv = '\0';
+    *argv = NULL;
 }
 
 void exec_cmd(char **argv) {
-    pid_t pid = fork();
-    if (pid < 0) {
-        perror("fork error");
-        exit(1);
-    }
-    else if (pid == 0) {
-        if (execvp(*argv, argv) < 0) {
-            perror("exec error");
-            exit(1);
-        }
-    }
-    else {
-        wait(NULL);
+    if (execvp(*argv, argv) < 0) {
+        perror("exec error");
+        exit(EXIT_FAILURE);
     }
 }
 
-void pipe_cmd(char** parsed, char** parsedpipe) { 
-    int pipefd[2]; 
-    pid_t p1, p2; 
+void execute_commands(char **commands) {
+    int pipefd[2];
+    pid_t pid;
+    int fd_in = 0;
 
-    if (pipe(pipefd) < 0) { 
-        perror("Pipe could not be initialized"); 
-        return; 
-    } 
-    p1 = fork(); 
-    if (p1 < 0) { 
-        perror("Could not fork"); 
-        return; 
-    } 
+    while (*commands != NULL) {
+        if (pipe(pipefd) < 0) {
+            perror("pipe error");
+            exit(EXIT_FAILURE);
+        }
 
-    if (p1 == 0) { 
-        close(pipefd[0]); 
-        dup2(pipefd[1], STDOUT_FILENO); 
-        close(pipefd[1]); 
-
-        if (execvp(parsed[0], parsed) < 0) { 
-            perror("Could not execute command 1"); 
-            exit(0); 
-        } 
-    } else { 
-        p2 = fork(); 
-
-        if (p2 < 0) { 
-            perror("Could not fork"); 
-            return; 
-        } 
-
-        if (p2 == 0) { 
-            close(pipefd[1]); 
-            dup2(pipefd[0], STDIN_FILENO); 
-            close(pipefd[0]); 
-            if (execvp(parsedpipe[0], parsedpipe) < 0) { 
-                perror("Could not execute command 2"); 
-                exit(0); 
-            } 
-        } 
-        else { 
-            wait(NULL); 
-            wait(NULL); 
-        } 
-    } 
+        if ((pid = fork()) == -1) {
+            perror("fork error");
+            exit(EXIT_FAILURE);
+        } else if (pid == 0) {
+            dup2(fd_in, STDIN_FILENO);
+            if (*(commands + 1) != NULL) {
+                dup2(pipefd[1], STDOUT_FILENO);
+            }
+            close(pipefd[0]);
+            exec_cmd(commands);
+            exit(EXIT_FAILURE);
+        } else {
+            wait(NULL);
+            close(pipefd[1]);
+            fd_in = pipefd[0];
+            commands++;
+        }
+    }
 }
