@@ -1,4 +1,6 @@
 This is file2sh
-example file wtf am i doing with my life..
 I have a sh here the search string "sh"
+asd
+asdasd
+asd
 sh
