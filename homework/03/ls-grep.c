@@ -4,33 +4,15 @@
 #include <sys/wait.h>
 #include <string.h>
 
-#define MAX_FILES 10
 #define MAX_STRING_LENGTH 100
 
-void ls_grep(const char *search_string, const char **file_names, int num_files) {
+void grep_file(const char *search_string, const char *file_name) {
     int pipefd[2];
-    pid_t cat_pid, grep_pid;
+    pid_t grep_pid;
     
     if (pipe(pipefd) == -1) {
         perror("pipe");
         exit(EXIT_FAILURE);
-    }
-    
-    cat_pid = fork();
-    if (cat_pid == -1) {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    if (cat_pid == 0) {
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-        
-        for (int i = 0; i < num_files; ++i) {
-            execlp("cat", "cat", file_names[i], NULL);
-            perror("execlp cat");
-            exit(EXIT_FAILURE);
-        }
     }
     
     grep_pid = fork();
@@ -39,19 +21,29 @@ void ls_grep(const char *search_string, const char **file_names, int num_files) 
         exit(EXIT_FAILURE);
     }
     if (grep_pid == 0) {
-        close(pipefd[1]);
-        dup2(pipefd[0], STDIN_FILENO);
         close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
         
-        execlp("grep", "grep", search_string, NULL);
+        execlp("grep", "grep", search_string, file_name, NULL);
         perror("execlp grep");
         exit(EXIT_FAILURE);
     }
     
-    close(pipefd[0]);
     close(pipefd[1]);
     
-    wait(NULL);
+    FILE *fp = fopen(file_name, "r");
+    if (fp == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+    
+    char line[MAX_STRING_LENGTH];
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        printf("%s", line);
+    }
+    
+    fclose(fp);
     wait(NULL);
 }
 
@@ -62,14 +54,10 @@ int main(int argc, char *argv[]) {
     }
     
     const char *search_string = argv[1];
-    const char *file_names[MAX_FILES];
-    int num_files = argc - 2;
     
-    for (int i = 0; i < num_files; ++i) {
-        file_names[i] = argv[i + 2];
+    for (int i = 2; i < argc; ++i) {
+        grep_file(search_string, argv[i]);
     }
-    
-    ls_grep(search_string, file_names, num_files);
     
     return 0;
 }
