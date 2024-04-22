@@ -28,7 +28,7 @@ int main() {
 
         int i = 0;
         while (argv[i] != NULL) {
-            if (strcmp(argv[i], "|") == 0) {
+            if (argv[i] != NULL && strcmp(argv[i], "|") == 0) {
                 argv[i] = NULL;
                 int j = 0;
                 while (argv[i + j + 1] != NULL) {
@@ -44,7 +44,7 @@ int main() {
         if (argv[i] == NULL) {
             pid_t pid = fork();
             if (pid < 0) {
-                printf("Fork error\n");
+                perror("fork error");
                 exit(1);
             } else if (pid == 0) {
                 exec_cmd(argv);

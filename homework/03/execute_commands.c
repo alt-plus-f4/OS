@@ -1,83 +1,74 @@
 #include "execute_commands.h"
 
 void parse(char *line, char **argv) {
-    while (*line != '\0') {
-        while (*line == ' ' || *line == '\t' || *line == '\n')
-            *line++ = '\0';
-        *argv++ = line;
-        while (*line != '\0' && *line != ' ' && *line != '\t' && *line != '\n') 
-            line++;
+    char *token = strtok(line, " \t\n");
+    while (token != NULL) {
+        *argv++ = token;
+        token = strtok(NULL, " \t\n");
     }
     *argv = '\0';
 }
 
 void exec_cmd(char **argv) {
-    pid_t pid;
-    int status;
-
-    if ((pid = fork()) < 0) {
-        printf("fork error\n");
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("fork error");
         exit(1);
     }
     else if (pid == 0) {
         if (execvp(*argv, argv) < 0) {
-            printf("exec error\n");
+            perror("exec error");
             exit(1);
         }
     }
     else {
-        while (wait(&status) != pid);
+        wait(NULL);
     }
 }
 
-void pipe_cmd(char **argv, char **argv2) {
-    int pipefd[2];
-    pid_t p1, p2;
+void pipe_cmd(char** parsed, char** parsedpipe) { 
+    int pipefd[2]; 
+    pid_t p1, p2; 
 
-    if (pipe(pipefd) < 0) {
-        printf("pipe error\n");
-        exit(1);
-    }
-    
-    p1 = fork();
-    if (p1 < 0) {
-        printf("fork error\n");
-        exit(1);
-    }
+    if (pipe(pipefd) < 0) { 
+        perror("Pipe could not be initialized"); 
+        return; 
+    } 
+    p1 = fork(); 
+    if (p1 < 0) { 
+        perror("Could not fork"); 
+        return; 
+    } 
 
-    if (p1 == 0) {
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
+    if (p1 == 0) { 
+        close(pipefd[0]); 
+        dup2(pipefd[1], STDOUT_FILENO); 
+        close(pipefd[1]); 
 
-        if (execvp(argv[0], argv) < 0) {
-            printf("exec error\n");
-            exit(1);
-        }    
-    }
-    else {
-        p2 = fork();
+        if (execvp(parsed[0], parsed) < 0) { 
+            perror("Could not execute command 1"); 
+            exit(0); 
+        } 
+    } else { 
+        p2 = fork(); 
 
-        if (p2 < 0) {
-            printf("fork error\n");
-            exit(1);
-        }
+        if (p2 < 0) { 
+            perror("Could not fork"); 
+            return; 
+        } 
 
-
-        if (p2 == 0) {
-            close(pipefd[1]);
-            dup2(pipefd[0], STDIN_FILENO);
-            close(pipefd[0]);
-
-            if (execvp(argv2[0], argv2) < 0) {
-                printf("exec error\n");
-                exit(1);
-            }
-        }
-        else {
-            close(pipefd[1]);
-            wait(NULL);
-            wait(NULL);
-        }
-    }
+        if (p2 == 0) { 
+            close(pipefd[1]); 
+            dup2(pipefd[0], STDIN_FILENO); 
+            close(pipefd[0]); 
+            if (execvp(parsedpipe[0], parsedpipe) < 0) { 
+                perror("Could not execute command 2"); 
+                exit(0); 
+            } 
+        } 
+        else { 
+            wait(NULL); 
+            wait(NULL); 
+        } 
+    } 
 }
