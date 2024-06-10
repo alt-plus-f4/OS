@@ -1,6 +1,6 @@
 #include "ls-commands.h"
 
-void print_file_info(struct stat *file_stat, const char *file_name) {
+void print_file(struct stat *file_stat, const char *file_name) {
     char permissions[11] = "----------";
     if (S_ISDIR(file_stat->st_mode)) permissions[0] = 'd';
     if (S_ISLNK(file_stat->st_mode)) permissions[0] = 'l';
@@ -27,7 +27,7 @@ void print_file_info(struct stat *file_stat, const char *file_name) {
 }
 
 
-void process_entry(const char *path, const char *name, int show_all, int long_format, int recursive) {
+void formatter(const char *path, const char *name, int show_all, int long_format, int recursive) {
     struct stat file_stat;
     char full_path[4096];
     snprintf(full_path, sizeof(full_path), "%s/%s", path, name);
@@ -37,14 +37,14 @@ void process_entry(const char *path, const char *name, int show_all, int long_fo
         return;
     }
 
-    if (long_format) print_file_info(&file_stat, name);
+    if (long_format) print_file(&file_stat, name);
     else printf("%s\n", name);
 
     if (recursive && S_ISDIR(file_stat.st_mode) && strcmp(name, ".") != 0 && strcmp(name, "..") != 0)
-        list_directory(full_path, show_all, long_format, recursive);
+        list_dir(full_path, show_all, long_format, recursive);
 }
 
-void list_directory(const char *dir_name, int show_all, int long_format, int recursive) {
+void list_dir(const char *dir_name, int show_all, int long_format, int recursive) {
     DIR *dir = opendir(dir_name);
     if (!dir) {
         perror("ls: cannot open directory");
@@ -58,10 +58,10 @@ void list_directory(const char *dir_name, int show_all, int long_format, int rec
 
     while ((entry = readdir(dir)) != NULL) {
         if (!show_all && entry->d_name[0] == '.') continue;
-        if (entry->d_type != DT_DIR) process_entry(dir_name, entry->d_name, show_all, long_format, recursive);
+        if (entry->d_type != DT_DIR) formatter(dir_name, entry->d_name, show_all, long_format, recursive);
         else dir_entries[dir_count++] = entry;
     }
 
-    for (int i = 0; i < dir_count; i++) process_entry(dir_name, dir_entries[i]->d_name, show_all, long_format, recursive);
+    for (int i = 0; i < dir_count; i++) formatter(dir_name, dir_entries[i]->d_name, show_all, long_format, recursive);
     closedir(dir);
 }

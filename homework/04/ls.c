@@ -12,12 +12,12 @@ int main(int argc, char *argv[]) {
             case 'R': recursive = 1; break;
             case 'r': recursive = 1; break;
             default:
-                printf("Usage: ./ls [-AlR] [file...]\n");
+                printf("Usage: ./ls [-AlRar] [file...]\n");
                 exit(EXIT_FAILURE);
         }
     }
 
-    if (optind == argc) list_directory(".", show_all, long_format, recursive);
+    if (optind == argc) list_dir(".", show_all, long_format, recursive);
     else {
         for (int i = optind; i < argc; i++) {
             struct stat file_stat;
@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            if (S_ISDIR(file_stat.st_mode)) list_directory(argv[i], show_all, long_format, recursive);
-            else process_entry(".", argv[i], show_all, long_format, recursive);
+            if (S_ISDIR(file_stat.st_mode)) list_dir(argv[i], show_all, long_format, recursive);
+            else formatter(".", argv[i], show_all, long_format, recursive);
         }
     }
 
